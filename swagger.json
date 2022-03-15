@@ -2747,6 +2747,9 @@
           "bingKey": {
             "type": "string"
           },
+          "osKey": {
+            "type": "string"
+          },
           "mapUrl": {
             "type": "string"
           },

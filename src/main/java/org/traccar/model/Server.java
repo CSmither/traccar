@@ -66,12 +66,22 @@ public class Server extends ExtendedModel {
 
     private String bingKey;
 
+    private String osKey;
+
     public String getBingKey() {
         return bingKey;
     }
 
     public void setBingKey(String bingKey) {
         this.bingKey = bingKey;
+    }
+
+    public String getOsKey() {
+        return osKey;
+    }
+
+    public void setOsKey(String osKey) {
+        this.osKey = osKey;
     }
 
     private String mapUrl;
