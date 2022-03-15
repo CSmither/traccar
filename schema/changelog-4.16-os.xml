@@ -11,6 +11,9 @@
         <addColumn tableName="tc_servers">
             <column name="oskey" type="VARCHAR(128)" />
         </addColumn>
+        <addColumn tableName="server">
+            <column name="oskey" type="VARCHAR(128)" />
+        </addColumn>
 
     </changeSet>
 
