@@ -22,6 +22,7 @@ import org.traccar.model.Position;
 import uk.gov.dstl.geo.osgb.Constants;
 import uk.gov.dstl.geo.osgb.EastingNorthingConversion;
 import uk.gov.dstl.geo.osgb.NationalGrid;
+import uk.gov.dstl.geo.osgb.OSGB36;
 
 import javax.json.Json;
 import java.util.Arrays;
@@ -36,7 +37,7 @@ public class OsGridRefHandler extends BaseDataHandler {
     @Override
     protected Position handlePosition(Position position) {
         double[] eastingsNorthings = EastingNorthingConversion.fromLatLon(
-                new double[]{position.getLatitude(), position.getLongitude()},
+                OSGB36.fromWGS84(position.getLatitude(), position.getLongitude()),
                 Constants.ELLIPSOID_AIRY1830_MAJORAXIS,
                 Constants.ELLIPSOID_AIRY1830_MINORAXIS,
                 Constants.NATIONALGRID_N0,
