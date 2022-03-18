@@ -23,10 +23,14 @@ import uk.gov.dstl.geo.osgb.Constants;
 import uk.gov.dstl.geo.osgb.EastingNorthingConversion;
 import uk.gov.dstl.geo.osgb.NationalGrid;
 
+import javax.json.Json;
+import java.util.Arrays;
+
 @ChannelHandler.Sharable
 public class OsGridRefHandler extends BaseDataHandler {
 
     public OsGridRefHandler() {
+        System.out.println("Creating OSGridRefHandler");
     }
 
     @Override
@@ -40,7 +44,11 @@ public class OsGridRefHandler extends BaseDataHandler {
                 Constants.NATIONALGRID_F0,
                 Constants.NATIONALGRID_LAT0,
                 Constants.NATIONALGRID_LON0);
-        position.set(Position.KEY_OS_GRID_REFERENCE, NationalGrid.toNationalGrid(eastingsNorthings).orElse(""));
+        String osGridRef=NationalGrid.toNationalGrid(eastingsNorthings).orElse("");
+        System.out.println(position.getLatitude()+","+position.getLongitude());
+        System.out.println(Arrays.toString(eastingsNorthings));
+        System.out.println(osGridRef);
+        position.set(Position.KEY_OS_GRID_REFERENCE, osGridRef);
         return position;
     }
 
