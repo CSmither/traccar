@@ -331,7 +331,6 @@ public class MainModule extends AbstractModule {
     @Singleton
     @Provides
     public static OsGridRefHandler provideOsGridRegHandler(TripsConfig tripsConfig) {
-        System.out.println("Providing OSGridRefHandler");
         return new OsGridRefHandler();
     }
 
