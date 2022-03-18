@@ -23,8 +23,6 @@ import uk.gov.dstl.geo.osgb.Constants;
 import uk.gov.dstl.geo.osgb.EastingNorthingConversion;
 import uk.gov.dstl.geo.osgb.NationalGrid;
 import uk.gov.dstl.geo.osgb.OSGB36;
-
-import javax.json.Json;
 import java.util.Arrays;
 
 @ChannelHandler.Sharable
