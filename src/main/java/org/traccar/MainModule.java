@@ -54,19 +54,7 @@ import org.traccar.geolocation.GoogleGeolocationProvider;
 import org.traccar.geolocation.MozillaGeolocationProvider;
 import org.traccar.geolocation.OpenCellIdGeolocationProvider;
 import org.traccar.geolocation.UnwiredGeolocationProvider;
-import org.traccar.handler.ComputedAttributesHandler;
-import org.traccar.handler.CopyAttributesHandler;
-import org.traccar.handler.DefaultDataHandler;
-import org.traccar.handler.DistanceHandler;
-import org.traccar.handler.EngineHoursHandler;
-import org.traccar.handler.FilterHandler;
-import org.traccar.handler.GeocoderHandler;
-import org.traccar.handler.GeolocationHandler;
-import org.traccar.handler.HemisphereHandler;
-import org.traccar.handler.MotionHandler;
-import org.traccar.handler.RemoteAddressHandler;
-import org.traccar.handler.SpeedLimitHandler;
-import org.traccar.handler.TimeHandler;
+import org.traccar.handler.*;
 import org.traccar.handler.events.AlertEventHandler;
 import org.traccar.handler.events.BehaviorEventHandler;
 import org.traccar.handler.events.CommandResultEventHandler;
@@ -325,6 +313,12 @@ public class MainModule extends AbstractModule {
     @Provides
     public static MotionHandler provideMotionHandler(TripsConfig tripsConfig) {
         return new MotionHandler(tripsConfig.getSpeedThreshold());
+    }
+
+    @Singleton
+    @Provides
+    public static OsGridRefHandler provideOsGridRegHandler(TripsConfig tripsConfig) {
+        return new OsGridRefHandler();
     }
 
     @Singleton

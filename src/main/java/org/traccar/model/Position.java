@@ -69,7 +69,7 @@ public class Position extends Message {
     public static final String KEY_ARCHIVE = "archive";
     public static final String KEY_DISTANCE = "distance"; // meters
     public static final String KEY_TOTAL_DISTANCE = "totalDistance"; // meters
-    public static final String KEY_OS_GRID_REFERENCE = "osGridRef"; // meters
+    public static final String KEY_OS_GRID_REFERENCE = "osGridRef";
     public static final String KEY_RPM = "rpm";
     public static final String KEY_VIN = "vin";
     public static final String KEY_APPROXIMATE = "approximate";
