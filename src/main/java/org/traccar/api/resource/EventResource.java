@@ -24,6 +24,7 @@ import org.traccar.model.Maintenance;
 import org.traccar.storage.StorageException;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -88,6 +89,26 @@ public class EventResource extends BaseResource {
             }).collect(Collectors.toList());
         }
         throw new StorageException(""); // Clean this up a bit
+    }
+
+
+    @Path("{id}")
+    @DELETE
+    public Event ackEvent(@PathParam("id") long id) throws StorageException {
+        Event event = Context.getDataManager().getObject(Event.class, id);
+        if (event == null) {
+            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
+        }
+        Context.getPermissionsManager().checkDevice(getUserId(), event.getDeviceId());
+        if (event.getGeofenceId() != 0) {
+            Context.getPermissionsManager().checkPermission(Geofence.class, getUserId(), event.getGeofenceId());
+        }
+        if (event.getMaintenanceId() != 0) {
+            Context.getPermissionsManager().checkPermission(Maintenance.class, getUserId(), event.getMaintenanceId());
+        }
+        event.setAcknowledged(true);
+        Context.getDataManager().updateObject(event);
+        return event;
     }
 
     @Path("{id}/ack")
