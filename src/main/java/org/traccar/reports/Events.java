@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Optional;
 
 public final class Events {
 
@@ -42,8 +43,8 @@ public final class Events {
     }
 
     public static Collection<Event> getObjects(long userId, Collection<Long> deviceIds, Collection<Long> groupIds,
-                                               Collection<String> types, Date from, Date to, Boolean acknowledged)
-            throws StorageException {
+                                               Collection<String> types, Date from, Date to,
+                                               Optional<Boolean> acknowledged) throws StorageException {
         ReportUtils.checkPeriodLimit(from, to);
         ArrayList<Event> result = new ArrayList<>();
         for (long deviceId : ReportUtils.getDeviceList(deviceIds, groupIds)) {
@@ -57,7 +58,7 @@ public final class Events {
                     if ((geofenceId == 0 || Context.getGeofenceManager().checkItemPermission(userId, geofenceId))
                             && (maintenanceId == 0
                             || Context.getMaintenancesManager().checkItemPermission(userId, maintenanceId))
-                            && acknowledged == event.isAcknowledged()) {
+                            && (acknowledged.isEmpty() || acknowledged.get() == event.isAcknowledged())) {
                         result.add(event);
                     }
                 }

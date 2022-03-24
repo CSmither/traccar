@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.activation.DataHandler;
 import javax.mail.MessagingException;
@@ -124,7 +125,7 @@ public class ReportResource extends BaseResource {
             @QueryParam("deviceId") final List<Long> deviceIds, @QueryParam("groupId") final List<Long> groupIds,
             @QueryParam("type") final List<String> types,
             @QueryParam("from") Date from, @QueryParam("to") Date to,
-            @QueryParam("acknowledged") Boolean acknowledged) throws StorageException {
+            @QueryParam("acknowledged") Optional<Boolean> acknowledged) throws StorageException {
         Context.getPermissionsManager().checkDisableReports(getUserId());
         LogAction.logReport(getUserId(), "events", from, to, deviceIds, groupIds);
         return Events.getObjects(getUserId(), deviceIds, groupIds, types, from, to, acknowledged);
