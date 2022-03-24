@@ -107,4 +107,14 @@ public class Event extends Message {
         this.maintenanceId = maintenanceId;
     }
 
+    private boolean acknowleded = false;
+
+    public boolean isAcknowleded() {
+        return acknowleded;
+    }
+
+    public void setAcknowleded(boolean acknowleded) {
+        this.acknowleded = acknowleded;
+    }
+
 }
