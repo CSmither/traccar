@@ -68,7 +68,7 @@ public class EventResource extends BaseResource {
         if (event.getMaintenanceId() != 0) {
             Context.getPermissionsManager().checkPermission(Maintenance.class, getUserId(), event.getMaintenanceId());
         }
-        event.setAcknowleded(true);
+        event.setAcknowledged(true);
         Context.getDataManager().updateObject(event);
         return event;
     }

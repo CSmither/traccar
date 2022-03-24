@@ -16,16 +16,6 @@
  */
 package org.traccar.reports;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-
 import org.apache.poi.ss.util.WorkbookUtil;
 import org.traccar.Context;
 import org.traccar.model.Device;
@@ -36,16 +26,27 @@ import org.traccar.model.Maintenance;
 import org.traccar.reports.model.DeviceReport;
 import org.traccar.storage.StorageException;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+
 public final class Events {
 
     private Events() {
     }
 
     public static Collection<Event> getObjects(long userId, Collection<Long> deviceIds, Collection<Long> groupIds,
-            Collection<String> types, Date from, Date to) throws StorageException {
+                                               Collection<String> types, Date from, Date to, Boolean acknowledged)
+            throws StorageException {
         ReportUtils.checkPeriodLimit(from, to);
         ArrayList<Event> result = new ArrayList<>();
-        for (long deviceId: ReportUtils.getDeviceList(deviceIds, groupIds)) {
+        for (long deviceId : ReportUtils.getDeviceList(deviceIds, groupIds)) {
             Context.getPermissionsManager().checkDevice(userId, deviceId);
             Collection<Event> events = Context.getDataManager().getEvents(deviceId, from, to);
             boolean all = types.isEmpty() || types.contains(Event.ALL_EVENTS);
@@ -55,8 +56,9 @@ public final class Events {
                     long maintenanceId = event.getMaintenanceId();
                     if ((geofenceId == 0 || Context.getGeofenceManager().checkItemPermission(userId, geofenceId))
                             && (maintenanceId == 0
-                            || Context.getMaintenancesManager().checkItemPermission(userId, maintenanceId))) {
-                       result.add(event);
+                            || Context.getMaintenancesManager().checkItemPermission(userId, maintenanceId))
+                            && acknowledged == event.isAcknowledged()) {
+                        result.add(event);
                     }
                 }
             }
@@ -65,14 +67,14 @@ public final class Events {
     }
 
     public static void getExcel(OutputStream outputStream,
-            long userId, Collection<Long> deviceIds, Collection<Long> groupIds,
-            Collection<String> types, Date from, Date to) throws StorageException, IOException {
+                                long userId, Collection<Long> deviceIds, Collection<Long> groupIds,
+                                Collection<String> types, Date from, Date to) throws StorageException, IOException {
         ReportUtils.checkPeriodLimit(from, to);
         ArrayList<DeviceReport> devicesEvents = new ArrayList<>();
         ArrayList<String> sheetNames = new ArrayList<>();
         HashMap<Long, String> geofenceNames = new HashMap<>();
         HashMap<Long, String> maintenanceNames = new HashMap<>();
-        for (long deviceId: ReportUtils.getDeviceList(deviceIds, groupIds)) {
+        for (long deviceId : ReportUtils.getDeviceList(deviceIds, groupIds)) {
             Context.getPermissionsManager().checkDevice(userId, deviceId);
             Collection<Event> events = Context.getDataManager().getEvents(deviceId, from, to);
             boolean all = types.isEmpty() || types.contains(Event.ALL_EVENTS);

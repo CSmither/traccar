@@ -123,10 +123,11 @@ public class ReportResource extends BaseResource {
     public Collection<Event> getEvents(
             @QueryParam("deviceId") final List<Long> deviceIds, @QueryParam("groupId") final List<Long> groupIds,
             @QueryParam("type") final List<String> types,
-            @QueryParam("from") Date from, @QueryParam("to") Date to) throws StorageException {
+            @QueryParam("from") Date from, @QueryParam("to") Date to,
+            @QueryParam("acknowledged") Boolean acknowledged) throws StorageException {
         Context.getPermissionsManager().checkDisableReports(getUserId());
         LogAction.logReport(getUserId(), "events", from, to, deviceIds, groupIds);
-        return Events.getObjects(getUserId(), deviceIds, groupIds, types, from, to);
+        return Events.getObjects(getUserId(), deviceIds, groupIds, types, from, to, acknowledged);
     }
 
     @Path("events")
