@@ -109,6 +109,10 @@ public class Event extends Message {
 
     private boolean acknowledged = false;
 
+    public boolean getAcknowledged() {
+        return acknowledged;
+    }
+
     public boolean isAcknowledged() {
         return acknowledged;
     }
