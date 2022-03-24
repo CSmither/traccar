@@ -9,7 +9,7 @@
     <changeSet author="author" id="changelog-smither-4.17">
 
         <addColumn tableName="tc_events">
-            <column name="acknowledged" type="BOOL" defaultValueBoolean="false"/>
+            <column name="acknowledged" type="BOOLEAN" defaultValueBoolean="false"/>
         </addColumn>
 
     </changeSet>
