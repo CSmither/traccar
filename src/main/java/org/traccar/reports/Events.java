@@ -58,7 +58,7 @@ public final class Events {
                     if ((geofenceId == 0 || Context.getGeofenceManager().checkItemPermission(userId, geofenceId))
                             && (maintenanceId == 0
                             || Context.getMaintenancesManager().checkItemPermission(userId, maintenanceId))
-                            && (acknowledged.isEmpty() || acknowledged.get() == event.getAcknowledged())) {
+                            && (acknowledged.isEmpty() || acknowledged.get() == event.isAcknowledged())) {
                         result.add(event);
                     }
                 }
