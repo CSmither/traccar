@@ -23,7 +23,14 @@ import org.traccar.model.Geofence;
 import org.traccar.model.Maintenance;
 import org.traccar.storage.StorageException;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Collection;
@@ -54,7 +61,8 @@ public class EventResource extends BaseResource {
     @GET
     public Collection<Event> getMany(@QueryParam("acknowledged") Ternary acknowledged) throws StorageException {
         if (acknowledged.getValue().isPresent()) {
-            Collection<Event> events = Context.getDataManager().getEventsByAcknowledged(acknowledged.getValue().get());
+            Collection<Event> events = Context.getDataManager()
+                    .getEventsByAcknowledged(acknowledged.getValue().get());
             return events.stream().filter(event -> {
                 if (event == null) {
                     return false;
@@ -62,14 +70,16 @@ public class EventResource extends BaseResource {
                 Context.getPermissionsManager().checkDevice(getUserId(), event.getDeviceId());
                 if (event.getGeofenceId() != 0) {
                     try {
-                        Context.getPermissionsManager().checkPermission(Geofence.class, getUserId(), event.getGeofenceId());
+                        Context.getPermissionsManager()
+                                .checkPermission(Geofence.class, getUserId(), event.getGeofenceId());
                     } catch (SecurityException secex) {
                         return false;
                     }
                 }
                 if (event.getMaintenanceId() != 0) {
                     try {
-                        Context.getPermissionsManager().checkPermission(Maintenance.class, getUserId(), event.getMaintenanceId());
+                        Context.getPermissionsManager()
+                                .checkPermission(Maintenance.class, getUserId(), event.getMaintenanceId());
                     } catch (SecurityException secex) {
                         return false;
                     }
@@ -77,7 +87,7 @@ public class EventResource extends BaseResource {
                 return true;
             }).collect(Collectors.toList());
         }
-        throw new StorageException(""); // TODO: Clean this up a bit
+        throw new StorageException(""); // Clean this up a bit
     }
 
     @Path("{id}/ack")

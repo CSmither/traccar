@@ -9,8 +9,7 @@ public class Ternary {
     public Ternary(String value) {
         if (value.isBlank() || value.isEmpty()) {
             this.value = Optional.empty();
-        }
-        else {
+        } else {
             this.value = Optional.of(Boolean.parseBoolean(value));
         }
     }

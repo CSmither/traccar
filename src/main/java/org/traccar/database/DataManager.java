@@ -27,12 +27,22 @@ import liquibase.resource.ResourceAccessor;
 import org.traccar.Context;
 import org.traccar.config.Config;
 import org.traccar.config.Keys;
-import org.traccar.model.*;
+import org.traccar.model.BaseModel;
+import org.traccar.model.Device;
+import org.traccar.model.Event;
+import org.traccar.model.Permission;
+import org.traccar.model.Position;
+import org.traccar.model.Server;
+import org.traccar.model.Statistics;
+import org.traccar.model.User;
 import org.traccar.storage.DatabaseStorage;
 import org.traccar.storage.Storage;
 import org.traccar.storage.StorageException;
+import org.traccar.storage.query.Columns;
+import org.traccar.storage.query.Condition;
+import org.traccar.storage.query.Limit;
 import org.traccar.storage.query.Order;
-import org.traccar.storage.query.*;
+import org.traccar.storage.query.Request;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -46,9 +56,20 @@ import java.util.List;
 public class DataManager {
 
     private final Config config;
-    private final Storage storage;
-    private final boolean forceLdap;
+
     private DataSource dataSource;
+
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
+    private final Storage storage;
+
+    public Storage getStorage() {
+        return storage;
+    }
+
+    private final boolean forceLdap;
 
     public DataManager(Config config) throws Exception {
         this.config = config;
@@ -59,90 +80,6 @@ public class DataManager {
         initDatabaseSchema();
 
         storage = new DatabaseStorage(dataSource);
-    }
-
-    public void addObject(BaseModel entity) throws StorageException {
-        entity.setId(storage.addObject(entity, new Request(new Columns.Exclude("id"))));
-    }
-
-    public DataSource getDataSource() {
-        return dataSource;
-    }
-
-    public Collection<Event> getEvents(long deviceId, Date from, Date to) throws StorageException {
-        return storage.getObjects(Event.class, new Request(
-                new Columns.All(),
-                new Condition.And(
-                        new Condition.Equals("deviceId", "deviceId", deviceId),
-                        new Condition.Between("eventTime", "from", from, "to", to)),
-                new Order("eventTime")));
-    }
-
-    public Collection<Event> getEventsByAcknowledged(boolean acknowledged) throws StorageException {
-        return storage.getObjects(Event.class, new Request(
-                new Columns.All(),
-                new Condition.Equals("acknowledged", "acknowledged", acknowledged),
-                new Order("eventTime")));
-    }
-
-    public Collection<Position> getLatestPositions() throws StorageException {
-        List<Position> positions = new LinkedList<>();
-        List<Device> devices = storage.getObjects(Device.class, new Request(new Columns.Include("positionId")));
-        for (Device device : devices) {
-            positions.addAll(storage.getObjects(Position.class, new Request(
-                    new Columns.All(),
-                    new Condition.Equals("id", "id", device.getPositionId()))));
-        }
-        return positions;
-    }
-
-    public <T extends BaseModel> T getObject(Class<T> clazz, long entityId) throws StorageException {
-        return storage.getObject(clazz, new Request(
-                new Columns.All(),
-                new Condition.Equals("id", "id", entityId)));
-    }
-
-    public <T extends BaseModel> Collection<T> getObjects(Class<T> clazz) throws StorageException {
-        return storage.getObjects(clazz, new Request(new Columns.All()));
-    }
-
-    public Collection<Permission> getPermissions(Class<? extends BaseModel> owner, Class<? extends BaseModel> property)
-            throws StorageException, ClassNotFoundException {
-        return storage.getPermissions(owner, property);
-    }
-
-    public Collection<Position> getPositions(long deviceId, Date from, Date to) throws StorageException {
-        return storage.getObjects(Position.class, new Request(
-                new Columns.All(),
-                new Condition.And(
-                        new Condition.Equals("deviceId", "deviceId", deviceId),
-                        new Condition.Between("fixTime", "from", from, "to", to)),
-                new Order("fixTime")));
-    }
-
-    public Position getPrecedingPosition(long deviceId, Date date) throws StorageException {
-        return storage.getObject(Position.class, new Request(
-                new Columns.All(),
-                new Condition.And(
-                        new Condition.Equals("deviceId", "deviceId", deviceId),
-                        new Condition.Compare("fixTime", "<=", "time", date)),
-                new Order(true, "fixTime"),
-                new Limit(1)));
-    }
-
-    public Server getServer() throws StorageException {
-        return storage.getObject(Server.class, new Request(new Columns.All()));
-    }
-
-    public Collection<Statistics> getStatistics(Date from, Date to) throws StorageException {
-        return storage.getObjects(Statistics.class, new Request(
-                new Columns.All(),
-                new Condition.Between("captureTime", "from", from, "to", to),
-                new Order("captureTime")));
-    }
-
-    public Storage getStorage() {
-        return storage;
     }
 
     private void initDatabase() throws Exception {
@@ -205,16 +142,6 @@ public class DataManager {
         }
     }
 
-    public void linkObject(Class<?> owner, long ownerId, Class<?> property, long propertyId, boolean link)
-            throws StorageException {
-        if (link) {
-            storage.addPermission(new Permission(owner, ownerId, property, propertyId));
-        }
-        else {
-            storage.removePermission(new Permission(owner, ownerId, property, propertyId));
-        }
-    }
-
     public User login(String email, String password) throws StorageException {
         User user = storage.getObject(User.class, new Request(
                 new Columns.Include("id", "login", "hashedPassword", "salt"),
@@ -227,8 +154,7 @@ public class DataManager {
                     || !forceLdap && user.isPasswordValid(password)) {
                 return user;
             }
-        }
-        else {
+        } else {
             if (ldapProvider != null && ldapProvider.login(email, password)) {
                 user = ldapProvider.getUser(email);
                 Context.getUsersManager().addItem(user);
@@ -238,14 +164,35 @@ public class DataManager {
         return null;
     }
 
-    public void removeObject(Class<? extends BaseModel> clazz, long entityId) throws StorageException {
-        storage.removeObject(clazz, new Request(new Condition.Equals("id", "id", entityId)));
+    public void updateUserPassword(User user) throws StorageException {
+        storage.updateObject(user, new Request(
+                new Columns.Include("hashedPassword", "salt"),
+                new Condition.Equals("id", "id")));
     }
 
     public void updateDeviceStatus(Device device) throws StorageException {
         storage.updateObject(device, new Request(
                 new Columns.Include("lastUpdate"),
                 new Condition.Equals("id", "id")));
+    }
+
+    public Collection<Position> getPositions(long deviceId, Date from, Date to) throws StorageException {
+        return storage.getObjects(Position.class, new Request(
+                new Columns.All(),
+                new Condition.And(
+                        new Condition.Equals("deviceId", "deviceId", deviceId),
+                        new Condition.Between("fixTime", "from", from, "to", to)),
+                new Order("fixTime")));
+    }
+
+    public Position getPrecedingPosition(long deviceId, Date date) throws StorageException {
+        return storage.getObject(Position.class, new Request(
+                new Columns.All(),
+                new Condition.And(
+                        new Condition.Equals("deviceId", "deviceId", deviceId),
+                        new Condition.Compare("fixTime", "<=", "time", date)),
+                new Order(true, "fixTime"),
+                new Limit(1)));
     }
 
     public void updateLatestPosition(Position position) throws StorageException {
@@ -257,16 +204,80 @@ public class DataManager {
                 new Condition.Equals("id", "id")));
     }
 
+    public Collection<Position> getLatestPositions() throws StorageException {
+        List<Position> positions = new LinkedList<>();
+        List<Device> devices = storage.getObjects(Device.class, new Request(new Columns.Include("positionId")));
+        for (Device device : devices) {
+            positions.addAll(storage.getObjects(Position.class, new Request(
+                    new Columns.All(),
+                    new Condition.Equals("id", "id", device.getPositionId()))));
+        }
+        return positions;
+    }
+
+    public Server getServer() throws StorageException {
+        return storage.getObject(Server.class, new Request(new Columns.All()));
+    }
+
+    public Collection<Event> getEvents(long deviceId, Date from, Date to) throws StorageException {
+        return storage.getObjects(Event.class, new Request(
+                new Columns.All(),
+                new Condition.And(
+                        new Condition.Equals("deviceId", "deviceId", deviceId),
+                        new Condition.Between("eventTime", "from", from, "to", to)),
+                new Order("eventTime")));
+    }
+
+    public Collection<Event> getEventsByAcknowledged(boolean acknowledged) throws StorageException {
+        return storage.getObjects(Event.class, new Request(
+                new Columns.All(),
+                new Condition.Equals("acknowledged", "acknowledged", acknowledged),
+                new Order("eventTime")));
+    }
+
+    public Collection<Statistics> getStatistics(Date from, Date to) throws StorageException {
+        return storage.getObjects(Statistics.class, new Request(
+                new Columns.All(),
+                new Condition.Between("captureTime", "from", from, "to", to),
+                new Order("captureTime")));
+    }
+
+    public Collection<Permission> getPermissions(Class<? extends BaseModel> owner, Class<? extends BaseModel> property)
+            throws StorageException, ClassNotFoundException {
+        return storage.getPermissions(owner, property);
+    }
+
+    public void linkObject(Class<?> owner, long ownerId, Class<?> property, long propertyId, boolean link)
+            throws StorageException {
+        if (link) {
+            storage.addPermission(new Permission(owner, ownerId, property, propertyId));
+        } else {
+            storage.removePermission(new Permission(owner, ownerId, property, propertyId));
+        }
+    }
+
+    public <T extends BaseModel> T getObject(Class<T> clazz, long entityId) throws StorageException {
+        return storage.getObject(clazz, new Request(
+                new Columns.All(),
+                new Condition.Equals("id", "id", entityId)));
+    }
+
+    public <T extends BaseModel> Collection<T> getObjects(Class<T> clazz) throws StorageException {
+        return storage.getObjects(clazz, new Request(new Columns.All()));
+    }
+
+    public void addObject(BaseModel entity) throws StorageException {
+        entity.setId(storage.addObject(entity, new Request(new Columns.Exclude("id"))));
+    }
+
     public void updateObject(BaseModel entity) throws StorageException {
         storage.updateObject(entity, new Request(
                 new Columns.Exclude("id"),
                 new Condition.Equals("id", "id")));
     }
 
-    public void updateUserPassword(User user) throws StorageException {
-        storage.updateObject(user, new Request(
-                new Columns.Include("hashedPassword", "salt"),
-                new Condition.Equals("id", "id")));
+    public void removeObject(Class<? extends BaseModel> clazz, long entityId) throws StorageException {
+        storage.removeObject(clazz, new Request(new Condition.Equals("id", "id", entityId)));
     }
 
 }
