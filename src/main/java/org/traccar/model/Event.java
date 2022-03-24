@@ -109,12 +109,12 @@ public class Event extends Message {
 
     private boolean acknowledged = false;
 
-    public boolean isAcknowledged() {
+    public boolean getAcknowledged() {
         return acknowledged;
     }
 
-    public void setAcknowledged(boolean acknowleded) {
-        this.acknowledged = acknowleded;
+    public void setAcknowledged(boolean acknowledged) {
+        this.acknowledged = acknowledged;
     }
 
 }
